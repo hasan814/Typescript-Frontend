@@ -5,9 +5,9 @@ import Header from "./components/layouts/Header";
 
 const App = () => {
   return (
-    <div className="">
+    <div className="max-w-[1100px] mx-auto flex flex-col justify-between min-h-screen">
       <Header />
-      <main>
+      <main className="px-4">
         <Outlet />
       </main>
       <Footer />
