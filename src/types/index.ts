@@ -1,5 +1,6 @@
-export interface IBlogPost {
+export interface IBlog {
   title: string;
-  img: string;
-  content: string;
+  image: string;
+  text: string;
+  author: string
 }
