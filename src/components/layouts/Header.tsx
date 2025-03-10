@@ -1,13 +1,16 @@
-import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Search, User } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-const Header = () => {
-  // ============== State ================
-  const [menuOpen, setMenuOpen] = useState(false);
+import MobileMenu from "../modules/MobileMenu";
+import AuthModal from "../modules/AuthModal";
 
-  // ============== Rendering ================
+const Header = () => {
+  // ============== State ===============
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // ============== Rendering ===============
   return (
     <header className="w-full bg-white shadow-md px-6 py-4 mb-20">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -26,6 +29,7 @@ const Header = () => {
           <h1 className="text-xl font-semibold">My Blog</h1>
         </div>
 
+        {/* Search Input (Desktop) */}
         <div className="hidden md:flex items-center w-1/3 border border-gray-300 rounded-lg px-3 py-2">
           <Search className="w-5 h-5 text-gray-500" />
           <input
@@ -35,50 +39,27 @@ const Header = () => {
           />
         </div>
 
+        {/* Sign In Button & User Icon */}
         <div className="flex items-center gap-4">
-          <Button variant="outline" className="hidden md:block">
+          <Button
+            variant="outline"
+            className="hidden md:block"
+            onClick={() => setModalOpen(true)}
+          >
             Sign In
           </Button>
-          <User className="w-6 h-6 cursor-pointer" />
+          <User
+            className="w-6 h-6 cursor-pointer"
+            onClick={() => setModalOpen(true)}
+          />
         </div>
       </div>
 
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.nav
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="md:hidden mt-4 flex flex-col space-y-3 bg-gray-100 p-4 rounded-lg shadow"
-          >
-            <a
-              href="#"
-              className="text-gray-700 hover:text-gray-900 transition-all"
-            >
-              Home
-            </a>
-            <a
-              href="#"
-              className="text-gray-700 hover:text-gray-900 transition-all"
-            >
-              About
-            </a>
-            <a
-              href="#"
-              className="text-gray-700 hover:text-gray-900 transition-all"
-            >
-              Blog
-            </a>
-            <a
-              href="#"
-              className="text-gray-700 hover:text-gray-900 transition-all"
-            >
-              Contact
-            </a>
-          </motion.nav>
-        )}
-      </AnimatePresence>
+      {/* Mobile Menu */}
+      <MobileMenu isOpen={menuOpen} />
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={modalOpen} onClose={setModalOpen} />
     </header>
   );
 };
