@@ -1,5 +1,5 @@
 import { Menu, X, Search, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 import MobileMenu from "../modules/MobileMenu";
@@ -7,8 +7,34 @@ import AuthModal from "../modules/AuthModal";
 
 const Header = () => {
   // ============== State ===============
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  // ============== Check Auth Status ===============
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const accessToken = sessionStorage.getItem("accessToken");
+
+    if (storedUser && accessToken) {
+      setUser(JSON.parse(storedUser));
+      setIsAuthenticated(true);
+    } else {
+      localStorage.removeItem("user");
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  }, []);
+
+  // ============== Logout Function ===============
+  const logoutHandler = () => {
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("accessToken");
+    setUser(null);
+    setIsAuthenticated(false);
+    window.location.reload();
+  };
 
   // ============== Rendering ===============
   return (
@@ -41,17 +67,23 @@ const Header = () => {
 
         {/* Sign In Button & User Icon */}
         <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            className="hidden md:block"
-            onClick={() => setModalOpen(true)}
-          >
-            Sign In
-          </Button>
-          <User
-            className="w-6 h-6 cursor-pointer"
-            onClick={() => setModalOpen(true)}
-          />
+          {!isAuthenticated ? (
+            <Button
+              variant="outline"
+              className="hidden md:block"
+              onClick={() => setModalOpen(true)}
+            >
+              Sign In
+            </Button>
+          ) : (
+            <div
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={logoutHandler}
+            >
+              <User className="w-6 h-6" />
+              <span className="text-sm font-medium">{user?.fullName}</span>
+            </div>
+          )}
         </div>
       </div>
 
