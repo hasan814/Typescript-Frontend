@@ -1,36 +1,48 @@
 import { Menu, X, Search, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useCookies } from "react-cookie";
 import { Button } from "@/components/ui/button";
+import { IUser } from "@/types";
 
 import MobileMenu from "../modules/MobileMenu";
 import AuthModal from "../modules/AuthModal";
 
 const Header = () => {
   // ============== State ===============
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [cookies, , removeCookie] = useCookies(["accessToken", "user"]);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [user, setUser] = useState<IUser | null>(null);
 
   // ============== Check Auth Status ===============
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const accessToken = sessionStorage.getItem("accessToken");
-
-    if (storedUser && accessToken) {
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
-    } else {
-      localStorage.removeItem("user");
+    try {
+      if (cookies.user && cookies.accessToken) {
+        const parsedUser: IUser =
+          typeof cookies.user === "string"
+            ? JSON.parse(cookies.user)
+            : cookies.user;
+        console.log("Parsed user:", parsedUser);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+      } else {
+        removeCookie("user");
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+      removeCookie("user");
       setUser(null);
       setIsAuthenticated(false);
     }
-  }, []);
+  }, [cookies.user, cookies.accessToken, removeCookie]);
 
   // ============== Logout Function ===============
   const logoutHandler = () => {
-    localStorage.removeItem("user");
-    sessionStorage.removeItem("accessToken");
+    removeCookie("user");
+    removeCookie("accessToken");
     setUser(null);
     setIsAuthenticated(false);
     window.location.reload();

@@ -2,20 +2,23 @@ import { toast } from "sonner";
 
 import axios from "axios";
 
+// ============ Function to Read Cookies ===============
+const getCookie = (name: string) => {
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? match[2] : null;
+};
 
-// ============ Create API ===============
+// ============ Create API Client ===============
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: import.meta.env.NEXT_PUBLIC_API_BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
 
 // ============ Request Interceptor ===============
 apiClient.interceptors.request.use(
   (config) => {
-    const token = sessionStorage.getItem("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    const token = getCookie("accessToken");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
   (error) => Promise.reject(error)
@@ -27,8 +30,8 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       toast.error("Session expired, please log in again.");
-      sessionStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
+      document.cookie = "accessToken=; Max-Age=0; path=/;";
+      document.cookie = "user=; Max-Age=0; path=/;";
       window.location.reload();
     }
     return Promise.reject(error);

@@ -30,3 +30,11 @@ export interface AuthFormProps {
   submitHandler: (e: React.FormEvent) => void;
   toggleAuthMode: () => void;
 }
+
+
+export interface IUser {
+  _id: string;
+  fullName: string;
+  username: string;
+  accessToken?: string;
+}

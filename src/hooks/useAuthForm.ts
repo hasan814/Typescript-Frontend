@@ -1,15 +1,20 @@
+import { AuthFormState, IUser } from "@/types";
 import { AUTH_ENDPOINTS } from "@/utils/api";
-import { AuthFormState } from "@/types";
+import { useCookies } from "react-cookie";
+import { AxiosError } from "axios";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import apiClient from "@/utils/apiClient";
 
+
 export const useAuthForm = () => {
   // ============== State ==============
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [isSignUp, setIsSignUp] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [, setCookie] = useCookies(["accessToken", "user"]);
+
   const [formData, setFormData] = useState<AuthFormState>({
     fullName: "",
     username: "",
@@ -23,11 +28,17 @@ export const useAuthForm = () => {
   };
 
   // ============== API Function ==============
-  const handleApiError = (err: any) => {
-    const message = err.response?.data?.message || "An unexpected error occurred";
-    setError(message);
-    toast.error(message);
+  const handleApiError = (err: unknown) => {
+    if (err instanceof AxiosError && err.response?.data) {
+      const message = err.response.data.message || "An unexpected error occurred";
+      setError(message);
+      toast.error(message);
+    } else {
+      setError("An unexpected error occurred");
+      toast.error("An unexpected error occurred");
+    }
   };
+
 
   // ============== Submit Function ==============
   const submitHandler = async (e: React.FormEvent, onClose: (value: boolean) => void) => {
@@ -35,14 +46,15 @@ export const useAuthForm = () => {
     setLoading(true);
     setError("");
     const endpoint = isSignUp ? AUTH_ENDPOINTS.SIGNUP : AUTH_ENDPOINTS.LOGIN;
-    try {
-      const { data } = await apiClient.post(endpoint, formData);
-      if (!data) throw new Error("Something went wrong");
-      const { user } = data.data;
-      const { accessToken } = user;
 
-      localStorage.setItem("user", JSON.stringify(user));
-      sessionStorage.setItem("accessToken", accessToken);
+    try {
+      const { data } = await apiClient.post<{ data: { user: IUser } }>(endpoint, formData);
+      if (!data) throw new Error("Something went wrong");
+
+      const { user } = data.data;
+
+      setCookie("user", JSON.stringify(user), { path: "/", maxAge: 86400, secure: true });
+      setCookie("accessToken", user.accessToken, { path: "/", maxAge: 3600, secure: true });
 
       toast.success(isSignUp ? "Account created successfully!" : "Signed in successfully!");
 
